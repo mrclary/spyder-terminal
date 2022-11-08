@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - master
+  schedule:
+    - cron: '35 8 * * *'
 
 jobs:
   build:
@@ -42,6 +44,19 @@ jobs:
       - name: Create test environment
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh
+      - name: Checkout latest spyder dev
+        if: github.events.schedule == '35 8 * * *'
+        uses: actions/checkout@v3
+        with:
+          repository: https://github.com/spyder-ide/spyder.git
+          ref: 5.x
+      - name: Install latest spyder dev
+        if: github.events.schedule == '35 8 * * *'
+        run: |
+          conda remove --force -y spyder
+          mamba env update -f requirements/main.yml
+          mamba env update -f requirements/macos.yml
+          python install_dev_repos.py --not-editable
       - name: Show test environment
         shell: bash -l {0}
         run: |
